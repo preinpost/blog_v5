@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Light mode only. Redefining `dark:` to require a `.dark` ancestor (which we
+   never add) disables OS-based dark mode for every `dark:` utility at once. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-white text-neutral-900 antialiased;
+}
+
+/* ── Code blocks (Shiki github-light) ────────────────────────────
+   Standalone (pre-hydration / no-JS): tinted surface with border. */
+.prose pre.shiki {
+  @apply my-6 overflow-x-auto rounded-lg border border-neutral-200 p-4 text-sm leading-relaxed;
+  background-color: #f6f8fa !important; /* override Shiki's near-white inline bg */
+}
+
+/* Enhanced (after hydration): wrapper owns the surface; header = lang + copy. */
+.prose .code-block {
+  @apply my-6 overflow-hidden rounded-lg border border-neutral-200;
+  background-color: #f6f8fa;
+}
+.prose .code-header {
+  @apply flex items-center justify-between border-b border-neutral-200 px-4 py-1.5 text-xs;
+}
+.prose .code-lang {
+  @apply font-mono lowercase tracking-wide text-neutral-500;
+}
+.prose .code-copy {
+  @apply cursor-pointer rounded px-2 py-0.5 font-medium text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-800;
+}
+.prose .code-block pre.shiki {
+  @apply my-0 overflow-x-auto rounded-none border-0 p-4 text-sm leading-relaxed;
+  background-color: transparent !important;
+}
+
+/* Inline code: subtle chip, no prose backticks. */
+.prose :where(code):not(:where(pre *)) {
+  @apply rounded bg-neutral-100 px-1.5 py-0.5 font-normal before:content-none after:content-none;
+}

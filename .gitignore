@@ -1,0 +1,10 @@
+node_modules
+dist
+.output
+.wrangler
+.dev.vars
+.env
+src/routeTree.gen.ts
+.DS_Store
+*.log
+.playwright-mcp

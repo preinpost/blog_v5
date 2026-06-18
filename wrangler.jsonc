@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "blog-v5",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true },
+  // Custom domain (zone preinpost.in must be on this Cloudflare account).
+  "routes": [{ "pattern": "blog.preinpost.in", "custom_domain": true }],
+  "vars": {
+    // Cloudflare Access (Zero Trust). Fill after creating the Access app:
+    //   TEAM_DOMAIN = https://<team>.cloudflareaccess.com
+    //   ACCESS_AUD  = the Access application's Application Audience (AUD) tag
+    // Both are public identifiers, not secrets.
+    "TEAM_DOMAIN": "https://minsoosso.cloudflareaccess.com",
+    "ACCESS_AUD": "999c9c9cc67f52f8bf8a992b81857928c09df31eb13d4bbc26641e469900d56f",
+    // Optional: public R2 bucket / custom domain base URL. If empty, images are
+    // served through the GET /api/media/$key Worker route (works everywhere).
+    "R2_PUBLIC_BASE": ""
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "blog_v5",
+      "database_id": "ac101793-1b0f-4171-96e1-92694419ed7d",
+      "migrations_dir": "drizzle/migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "blog-v5-media" }]
+}

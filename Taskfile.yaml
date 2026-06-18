@@ -1,0 +1,116 @@
+version: '3'
+
+# blog_v5 명령어 모음 (go-task). `task` 만 치면 목록이 보입니다.
+# D1 이름: blog_v5 / R2 버킷: blog-v5-media / Worker: blog-v5
+
+vars:
+  D1: blog_v5
+  BUCKET: blog-v5-media
+
+tasks:
+  default:
+    desc: 사용 가능한 명령 목록
+    cmds: [task --list]
+    silent: true
+
+  # ── 개발 / 빌드 ────────────────────────────────
+  dev:
+    desc: 로컬 개발 서버 (workerd + 로컬 D1/R2, :3000)
+    cmds: [pnpm dev]
+
+  build:
+    desc: 프로덕션 빌드 (client + worker 번들)
+    cmds: [pnpm build]
+
+  preview:
+    desc: 빌드된 워커를 로컬에서 실행 (wrangler dev)
+    cmds: [pnpm build, pnpm preview]
+
+  typecheck:
+    desc: 타입체크 (tsc --noEmit)
+    cmds: [pnpm exec tsc --noEmit]
+
+  check:
+    desc: 타입체크 + 빌드 (배포 전 점검)
+    cmds:
+      - task: typecheck
+      - task: build
+
+  types:
+    desc: 바인딩 타입 재생성 (wrangler types) — wrangler.jsonc 변경 후 실행
+    cmds: [pnpm cf-types]
+
+  # ── 데이터베이스 (D1 + Drizzle) ────────────────
+  db:gen:
+    desc: 스키마 변경 → 마이그레이션 SQL 생성 (drizzle-kit)
+    cmds: [pnpm db:generate]
+
+  db:migrate:
+    desc: 로컬 D1에 마이그레이션 적용
+    cmds: [pnpm db:migrate:local]
+
+  db:migrate:remote:
+    desc: 원격(운영) D1에 마이그레이션 적용
+    cmds: [pnpm db:migrate:remote]
+
+  db:studio:
+    desc: Drizzle Studio (DB 브라우저)
+    cmds: [pnpm db:studio]
+
+  db:query:
+    desc: 'SQL 실행 (로컬). 예: task db:query CMD="SELECT slug FROM posts"'
+    cmds:
+      - npx wrangler d1 execute {{.D1}} --local --command "{{.CMD}}"
+
+  db:query:remote:
+    desc: 'SQL 실행 (원격). 예: task db:query:remote CMD="SELECT count(*) FROM posts"'
+    cmds:
+      - npx wrangler d1 execute {{.D1}} --remote --command "{{.CMD}}"
+
+  # ── 원격 리소스 프로비저닝 (최초 1회) ──────────
+  cf:login:
+    desc: Cloudflare 로그인 (브라우저 열림, 대화형)
+    cmds: [npx wrangler login]
+
+  db:create:
+    desc: 원격 D1 생성 → 출력된 database_id를 wrangler.jsonc에 기입
+    cmds:
+      - npx wrangler d1 create {{.D1}}
+
+  r2:create:
+    desc: 원격 R2 버킷 생성
+    cmds:
+      - npx wrangler r2 bucket create {{.BUCKET}}
+
+  # ── 기존 블로그 글 마이그레이션 ────────────────
+  blog:migrate:
+    desc: 옛 blog/ 글 → /tmp/migrate.sql + /tmp/migrate-images.tsv 생성
+    cmds: [node scripts/migrate-from-blog.mjs]
+
+  blog:seed:local:
+    desc: 마이그레이션 결과를 로컬 D1/R2에 적재 (먼저 blog:migrate 실행)
+    cmds:
+      - npx wrangler d1 execute {{.D1}} --local --file /tmp/migrate.sql
+      - task: _upload-images
+        vars: { SCOPE: '--local' }
+
+  blog:seed:remote:
+    desc: 마이그레이션 결과를 원격 D1/R2에 적재 (배포 시)
+    cmds:
+      - npx wrangler d1 execute {{.D1}} --remote --file /tmp/migrate.sql
+      - task: _upload-images
+        vars: { SCOPE: '--remote' }
+
+  _upload-images:
+    internal: true
+    cmds:
+      - |
+        while IFS=$'\t' read -r key src type; do
+          [ -z "$key" ] && continue
+          npx wrangler r2 object put "{{.BUCKET}}/$key" --file="$src" --content-type="$type" {{.SCOPE}}
+        done < /tmp/migrate-images.tsv
+
+  # ── 배포 ───────────────────────────────────────
+  deploy:
+    desc: 빌드 후 Cloudflare Workers에 배포
+    cmds: [pnpm deploy]
