@@ -1,8 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { Post } from '../../drizzle/schema'
 import { formatDate } from '~/lib/format'
+import { deriveExcerpt } from '~/lib/excerpt'
 
 export function PostCard({ post }: { post: Post }) {
+  const excerpt = deriveExcerpt(post)
   return (
     <article className="border-b border-neutral-200 py-6 dark:border-neutral-800">
       <Link
@@ -13,10 +15,8 @@ export function PostCard({ post }: { post: Post }) {
         <h2 className="text-xl font-semibold tracking-tight group-hover:underline">
           {post.title}
         </h2>
-        {post.excerpt ? (
-          <p className="mt-2 line-clamp-2 text-neutral-600 dark:text-neutral-400">
-            {post.excerpt}
-          </p>
+        {excerpt ? (
+          <p className="mt-2 line-clamp-2 text-neutral-600">{excerpt}</p>
         ) : null}
         <div className="mt-3 flex items-center gap-3 text-sm text-neutral-500">
           <time dateTime={new Date(post.createdAt).toISOString()}>
