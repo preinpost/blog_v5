@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Pretendard as the default sans font everywhere (loaded via CDN in __root). */
+@theme {
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
 /* Light mode only. Redefining `dark:` to require a `.dark` ancestor (which we
    never add) disables OS-based dark mode for every `dark:` utility at once. */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -42,4 +49,12 @@ body {
 /* Inline code: subtle chip, no prose backticks. */
 .prose :where(code):not(:where(pre *)) {
   @apply rounded bg-neutral-100 px-1.5 py-0.5 font-normal before:content-none after:content-none;
+}
+
+/* Milkdown (Crepe) editor: Pretendard for prose text (code stays monospace).
+   Crepe's theme CSS lazy-loads after app.css and sets these same vars on
+   `.milkdown`, so we need !important to win the cascade. */
+.milkdown {
+  --crepe-font-default: var(--font-sans) !important;
+  --crepe-font-title: var(--font-sans) !important;
 }

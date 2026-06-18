@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 export function Nav() {
   return (
     <header className="border-b border-neutral-200 dark:border-neutral-800">
-      <nav className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
+      <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
         <Link
           to="/"
           className="text-lg font-bold tracking-tight"
