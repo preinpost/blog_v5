@@ -24,6 +24,17 @@ import c from '@shikijs/langs/c'
 import go from '@shikijs/langs/go'
 import dockerfile from '@shikijs/langs/dockerfile'
 import diff from '@shikijs/langs/diff'
+import groovy from '@shikijs/langs/groovy'
+import properties from '@shikijs/langs/properties'
+import ini from '@shikijs/langs/ini'
+import toml from '@shikijs/langs/toml'
+import makefile from '@shikijs/langs/makefile'
+import nginx from '@shikijs/langs/nginx'
+import scala from '@shikijs/langs/scala'
+import ruby from '@shikijs/langs/ruby'
+import php from '@shikijs/langs/php'
+import swift from '@shikijs/langs/swift'
+import shellscript from '@shikijs/langs/shellscript'
 
 // Created once at module scope and reused across requests.
 let _hl: Promise<HighlighterCore> | null = null
@@ -53,6 +64,17 @@ export function getHighlighter(): Promise<HighlighterCore> {
         go,
         dockerfile,
         diff,
+        groovy,
+        properties,
+        ini,
+        toml,
+        makefile,
+        nginx,
+        scala,
+        ruby,
+        php,
+        swift,
+        shellscript,
       ],
       engine: createJavaScriptRegexEngine(),
     })

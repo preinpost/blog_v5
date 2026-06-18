@@ -22,6 +22,7 @@ function PostPage() {
       title={post.title}
       createdAt={post.createdAt}
       tags={post.tags}
+      status={post.status}
     >
       <Prose html={html} />
     </ArticleLayout>

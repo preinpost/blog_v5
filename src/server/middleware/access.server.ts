@@ -76,3 +76,13 @@ export function verifyAccessFromRequest(request: Request): Promise<AdminUser> {
     tokenFromCookie(request.headers.get('cookie'))
   return verifyToken(token)
 }
+
+/** Soft check: true if the current request is an authenticated admin (never throws). */
+export async function isAdmin(): Promise<boolean> {
+  try {
+    await verifyAccess()
+    return true
+  } catch {
+    return false
+  }
+}
