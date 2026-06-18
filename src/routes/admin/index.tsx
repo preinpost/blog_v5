@@ -45,15 +45,13 @@ function Dashboard() {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-3 text-sm">
-                {post.status === 'published' ? (
-                  <Link
-                    to="/posts/$slug"
-                    params={{ slug: post.slug }}
-                    className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
-                  >
-                    보기
-                  </Link>
-                ) : null}
+                <Link
+                  to="/posts/$slug"
+                  params={{ slug: post.slug }}
+                  className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                >
+                  {post.status === 'published' ? '보기' : '미리보기'}
+                </Link>
                 <Link
                   to="/admin/$id/edit"
                   params={{ id: post.id }}
