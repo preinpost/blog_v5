@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { desc, eq } from 'drizzle-orm'
+import { count, desc, eq, sql } from 'drizzle-orm'
 import { getDb } from './db'
 import { posts } from '../../drizzle/schema'
 import { verifyAccess } from './middleware/access.server'
@@ -17,14 +17,27 @@ export const requireAdmin = createServerFn({ method: 'GET' }).handler(
   },
 )
 
-/** Admin: all posts (incl. drafts), most recently updated first. */
-export const listAllPosts = createServerFn({ method: 'GET' }).handler(
-  async () => {
+/** Number of posts shown per admin list page. */
+export const PAGE_SIZE = 10
+
+/** Admin: all posts (incl. drafts), newest first, paginated 10 per page. */
+export const listAllPosts = createServerFn({ method: 'GET' })
+  .validator(z.object({ page: z.number().int().min(1).default(1) }))
+  .handler(async ({ data }) => {
     await verifyAccess()
     const db = getDb()
-    return db.query.posts.findMany({ orderBy: [desc(posts.createdAt)] })
-  },
-)
+    const [items, [{ value: total }]] = await Promise.all([
+      db.query.posts.findMany({
+        // Match the public list: tie-break same-day posts by rowid (insertion
+        // order) so the admin list is deterministic & newest-first too.
+        orderBy: [desc(posts.createdAt), desc(sql`rowid`)],
+        limit: PAGE_SIZE,
+        offset: (data.page - 1) * PAGE_SIZE,
+      }),
+      db.select({ value: count() }).from(posts),
+    ])
+    return { items, total, page: data.page, pageSize: PAGE_SIZE }
+  })
 
 /** Admin: a single post by id (incl. drafts) for editing. */
 export const getPostById = createServerFn({ method: 'GET' })

@@ -1,14 +1,19 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { z } from 'zod'
 import { listAllPosts, deletePost } from '~/server/admin.fn'
 import { formatDate } from '~/lib/format'
+import { Pagination } from '~/components/Pagination'
 
 export const Route = createFileRoute('/admin/')({
+  validateSearch: z.object({ page: z.number().int().min(1).catch(1).optional() }),
+  loaderDeps: ({ search }) => ({ page: search.page ?? 1 }),
+  loader: ({ deps }) => listAllPosts({ data: { page: deps.page } }),
   component: Dashboard,
-  loader: () => listAllPosts(),
 })
 
 function Dashboard() {
-  const posts = Route.useLoaderData()
+  const { items: posts, total, page, pageSize } = Route.useLoaderData()
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const router = useRouter()
 
   async function onDelete(id: string, title: string) {
@@ -71,6 +76,7 @@ function Dashboard() {
           ))}
         </ul>
       )}
+      <Pagination page={page} totalPages={totalPages} />
     </div>
   )
 }

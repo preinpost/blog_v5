@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { desc, eq } from 'drizzle-orm'
+import { count, desc, eq, sql } from 'drizzle-orm'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
@@ -87,25 +87,49 @@ async function renderMarkdown(md: string): Promise<string> {
   return String(file)
 }
 
-/** Public: published posts, newest first. */
-export const listPosts = createServerFn({ method: 'GET' }).handler(async () => {
-  const db = getDb()
-  return db.query.posts.findMany({
-    where: eq(posts.status, 'published'),
-    orderBy: [desc(posts.createdAt)],
-  })
-})
+/** Number of posts shown per list page. */
+export const PAGE_SIZE = 10
 
-/** Public: published posts that include a given tag, newest first. */
+const pageInput = z.object({ page: z.number().int().min(1).default(1) })
+
+/** Public: published posts, newest first, paginated 10 per page. */
+export const listPosts = createServerFn({ method: 'GET' })
+  .validator(pageInput)
+  .handler(async ({ data }) => {
+    const db = getDb()
+    const where = eq(posts.status, 'published')
+    const [items, [{ value: total }]] = await Promise.all([
+      db.query.posts.findMany({
+        where,
+        // createdAt is day-granular, so same-day posts tie — break the tie by
+        // rowid (insertion order) so ordering is deterministic & newest-first.
+        orderBy: [desc(posts.createdAt), desc(sql`rowid`)],
+        limit: PAGE_SIZE,
+        offset: (data.page - 1) * PAGE_SIZE,
+      }),
+      db.select({ value: count() }).from(posts).where(where),
+    ])
+    return { items, total, page: data.page, pageSize: PAGE_SIZE }
+  })
+
+/** Public: published posts that include a given tag, newest first, paginated. */
 export const listPostsByTag = createServerFn({ method: 'GET' })
-  .validator(z.object({ tag: z.string().min(1) }))
+  .validator(pageInput.extend({ tag: z.string().min(1) }))
   .handler(async ({ data }) => {
     const db = getDb()
     const all = await db.query.posts.findMany({
       where: eq(posts.status, 'published'),
-      orderBy: [desc(posts.createdAt)],
+      orderBy: [desc(posts.createdAt), desc(sql`rowid`)],
     })
-    return all.filter((p) => p.tags.includes(data.tag))
+    // tags are stored as JSON, so filter in memory then page the result.
+    const filtered = all.filter((p) => p.tags.includes(data.tag))
+    const start = (data.page - 1) * PAGE_SIZE
+    return {
+      items: filtered.slice(start, start + PAGE_SIZE),
+      total: filtered.length,
+      page: data.page,
+      pageSize: PAGE_SIZE,
+    }
   })
 
 /**
