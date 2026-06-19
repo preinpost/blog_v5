@@ -113,4 +113,5 @@ tasks:
   # ── 배포 ───────────────────────────────────────
   deploy:
     desc: 빌드 후 Cloudflare Workers에 배포
-    cmds: [pnpm deploy]
+    # `pnpm deploy` 는 pnpm 내장 명령(워크스페이스 배포)과 충돌하므로 run 으로 스크립트를 강제 실행
+    cmds: [pnpm run deploy]
