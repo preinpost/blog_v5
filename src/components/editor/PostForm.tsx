@@ -15,6 +15,14 @@ function EditorSkeleton() {
 const fieldClass =
   'w-full rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700'
 
+/** Format a Date as `YYYY-MM-DD` in local time (avoids UTC shifting the day). */
+function toLocalDateInput(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 /** Crepe ImageBlock upload hook → POST to the R2 upload route → return public URL. */
 async function uploadImage(file: File): Promise<string> {
   const fd = new FormData()
@@ -37,7 +45,7 @@ export function PostForm({ post }: { post?: Post }) {
     post?.status ?? 'draft',
   )
   const [date, setDate] = useState(
-    (post ? new Date(post.createdAt) : new Date()).toISOString().slice(0, 10),
+    toLocalDateInput(post ? new Date(post.createdAt) : new Date()),
   )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
