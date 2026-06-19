@@ -7,8 +7,10 @@ import {
 import type { ReactNode } from 'react'
 import appCss from '~/styles/app.css?url'
 import { Nav } from '~/components/Nav'
+import { getIsAdmin } from '~/server/admin.fn'
 
 export const Route = createRootRoute({
+  loader: () => getIsAdmin(),
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -36,13 +38,14 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+  const isAdmin = Route.useLoaderData()
   return (
     <html lang="ko">
       <head>
         <HeadContent />
       </head>
       <body className="flex min-h-screen flex-col">
-        <Nav />
+        <Nav isAdmin={isAdmin} />
         <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
           {children}
         </main>

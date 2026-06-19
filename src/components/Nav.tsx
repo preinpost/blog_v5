@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
-export function Nav() {
+export function Nav({ isAdmin }: { isAdmin: boolean }) {
   return (
     <header className="border-b border-neutral-200 dark:border-neutral-800">
       <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
@@ -20,13 +20,15 @@ export function Nav() {
           >
             Home
           </Link>
-          <Link
-            to="/admin"
-            className="transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
-            activeProps={{ className: 'text-neutral-900 dark:text-neutral-100 font-medium' }}
-          >
-            관리
-          </Link>
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
+              activeProps={{ className: 'text-neutral-900 dark:text-neutral-100 font-medium' }}
+            >
+              관리
+            </Link>
+          )}
         </div>
       </nav>
     </header>

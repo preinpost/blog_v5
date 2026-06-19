@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { count, desc, eq, sql } from 'drizzle-orm'
 import { getDb } from './db'
 import { posts } from '../../drizzle/schema'
-import { verifyAccess } from './middleware/access.server'
+import { verifyAccess, isAdmin } from './middleware/access.server'
 import { slugify } from '~/lib/slug'
 
 // verifyAccess() is called inside every handler below. Because it is only
@@ -15,6 +15,15 @@ export const requireAdmin = createServerFn({ method: 'GET' }).handler(
   async () => {
     return verifyAccess()
   },
+)
+
+/**
+ * Soft check for the UI (never throws): is the current viewer an authenticated
+ * admin? Used to hide admin-only nav from regular visitors. Not a security
+ * boundary — Cloudflare Access still gates /admin* at the edge.
+ */
+export const getIsAdmin = createServerFn({ method: 'GET' }).handler(() =>
+  isAdmin(),
 )
 
 /** Number of posts shown per admin list page. */
