@@ -8,6 +8,13 @@
       "when": 1781791767126,
       "tag": "0000_quiet_exodus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1781874037918,
+      "tag": "0001_far_silhouette",
+      "breakpoints": true
     }
   ]
 }

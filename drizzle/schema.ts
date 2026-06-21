@@ -14,7 +14,10 @@ export const posts = sqliteTable(
     slug: text('slug').notNull(),
     title: text('title').notNull(),
     excerpt: text('excerpt'),
-    content: text('content').notNull(), // raw markdown (source of truth)
+    content: text('content').notNull(), // markdown source, or full HTML doc when contentType === 'html'
+    contentType: text('content_type', { enum: ['markdown', 'html'] })
+      .notNull()
+      .default('markdown'),
     tags: text('tags', { mode: 'json' })
       .$type<string[]>()
       .notNull()

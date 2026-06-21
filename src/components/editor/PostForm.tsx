@@ -47,6 +47,13 @@ export function PostForm({ post }: { post?: Post }) {
   const [date, setDate] = useState(
     toLocalDateInput(post ? new Date(post.createdAt) : new Date()),
   )
+  const [contentType, setContentType] = useState<'markdown' | 'html'>(
+    post?.contentType ?? 'markdown',
+  )
+  const [htmlContent, setHtmlContent] = useState(
+    post?.contentType === 'html' ? post.content : '',
+  )
+  const [htmlFileName, setHtmlFileName] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -55,9 +62,16 @@ export function PostForm({ post }: { post?: Post }) {
       setError('제목을 입력하세요')
       return
     }
+    const content =
+      contentType === 'html'
+        ? htmlContent
+        : (crepeRef.current?.getMarkdown() ?? '')
+    if (contentType === 'html' && !content.trim()) {
+      setError('HTML 파일을 첨부하세요')
+      return
+    }
     setSaving(true)
     setError(null)
-    const content = crepeRef.current?.getMarkdown() ?? ''
     const tags = tagsInput
       .split(',')
       .map((t) => t.trim())
@@ -66,6 +80,7 @@ export function PostForm({ post }: { post?: Post }) {
       title: title.trim(),
       slug: slug.trim() || undefined,
       content,
+      contentType,
       excerpt: excerpt.trim() || undefined,
       tags,
       status,
@@ -160,17 +175,60 @@ export function PostForm({ post }: { post?: Post }) {
         className={fieldClass}
       />
 
-      <div className="rounded-lg border border-neutral-200 dark:border-neutral-800">
+      <div className="flex gap-1 rounded-md border border-neutral-300 p-1 text-sm dark:border-neutral-700">
+        {(['markdown', 'html'] as const).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setContentType(mode)}
+            className={`flex-1 rounded px-3 py-1.5 ${
+              contentType === mode
+                ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
+                : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400'
+            }`}
+          >
+            {mode === 'markdown' ? '마크다운' : 'HTML 첨부'}
+          </button>
+        ))}
+      </div>
+
+      {/* Crepe stays mounted (preserves state/ref); just hidden in HTML mode. */}
+      <div
+        className={`rounded-lg border border-neutral-200 dark:border-neutral-800 ${
+          contentType === 'html' ? 'hidden' : ''
+        }`}
+      >
         <ClientOnly fallback={<EditorSkeleton />}>
           <Suspense fallback={<EditorSkeleton />}>
             <CrepeEditor
-              initialMarkdown={post?.content ?? ''}
+              initialMarkdown={post?.contentType === 'html' ? '' : (post?.content ?? '')}
               crepeRef={crepeRef}
               onUpload={uploadImage}
             />
           </Suspense>
         </ClientOnly>
       </div>
+
+      {contentType === 'html' ? (
+        <div className="space-y-2 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+          <input
+            type="file"
+            accept=".html,text/html"
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              setHtmlFileName(file.name)
+              setHtmlContent(await file.text())
+            }}
+            className="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-neutral-300 file:bg-transparent file:px-3 file:py-1.5 file:text-sm dark:file:border-neutral-700"
+          />
+          <p className="text-sm text-neutral-500">
+            {htmlContent
+              ? `현재 HTML: ${htmlFileName ? `${htmlFileName} · ` : ''}${htmlContent.length.toLocaleString()}자`
+              : 'HTML 파일(.html)을 첨부하면 스타일까지 그대로 발행됩니다.'}
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }

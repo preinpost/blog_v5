@@ -145,6 +145,11 @@ export const getRenderedPost = createServerFn({ method: 'GET' })
     })
     if (!post) return null
     if (post.status !== 'published' && !(await isAdmin())) return null // hide drafts
-    const html = await renderMarkdown(post.content)
+    // HTML posts are uploaded as a complete document and rendered as-is (in an
+    // isolated iframe on the client); markdown posts go through the renderer.
+    const html =
+      post.contentType === 'html'
+        ? post.content
+        : await renderMarkdown(post.content)
     return { post, html }
   })
