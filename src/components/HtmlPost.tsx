@@ -17,20 +17,35 @@ export function HtmlPost({ html, draft }: { html: string; draft?: boolean }) {
 
     const fit = () => {
       const doc = iframe.contentDocument
-      if (doc) iframe.style.height = `${doc.documentElement.scrollHeight}px`
+      const body = doc?.body
+      if (!doc || !body) return
+      // Measure the *content*, not the scroll viewport, and round up so a
+      // sub-pixel remainder can't trigger the iframe's own scrollbar.
+      const h = Math.max(
+        body.scrollHeight,
+        body.getBoundingClientRect().height,
+        doc.documentElement.scrollHeight,
+      )
+      iframe.style.height = `${Math.ceil(h) + 1}px`
     }
 
     fit()
 
     const doc = iframe.contentDocument
     let ro: ResizeObserver | undefined
-    if (doc?.documentElement && typeof ResizeObserver !== 'undefined') {
+    // NOTE: observe <body> — inside an iframe <html> is the viewport box and
+    // never changes size, so observing it would never fire.
+    if (doc?.body && typeof ResizeObserver !== 'undefined') {
       ro = new ResizeObserver(fit)
-      ro.observe(doc.documentElement)
+      ro.observe(doc.body)
     }
+    // Webfonts / late images reflow the document after load.
+    doc?.fonts?.ready.then(fit).catch(() => {})
+    const t = setTimeout(fit, 300)
     window.addEventListener('resize', fit)
     return () => {
       ro?.disconnect()
+      clearTimeout(t)
       window.removeEventListener('resize', fit)
     }
   }, [html])
@@ -38,7 +53,13 @@ export function HtmlPost({ html, draft }: { html: string; draft?: boolean }) {
   function onLoad() {
     const iframe = ref.current
     const doc = iframe?.contentDocument
-    if (iframe && doc) iframe.style.height = `${doc.documentElement.scrollHeight}px`
+    const body = doc?.body
+    if (!iframe || !doc || !body) return
+    const apply = () => {
+      iframe.style.height = `${Math.ceil(Math.max(body.scrollHeight, doc.documentElement.scrollHeight)) + 1}px`
+    }
+    apply()
+    doc.fonts?.ready.then(apply).catch(() => {})
   }
 
   return (
@@ -54,8 +75,9 @@ export function HtmlPost({ html, draft }: { html: string; draft?: boolean }) {
         sandbox="allow-same-origin"
         title="post"
         onLoad={onLoad}
+        scrolling="no"
         className="block w-full border-0"
-        style={{ minHeight: '60vh' }}
+        style={{ minHeight: '60vh', overflow: 'hidden' }}
       />
     </div>
   )
