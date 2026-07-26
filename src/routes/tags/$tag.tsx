@@ -3,25 +3,38 @@ import { z } from 'zod'
 import { listPostsByTag } from '~/server/posts.fn'
 import { PostList } from '~/components/PostList'
 import { Pagination } from '~/components/Pagination'
+import { AiFilterToggle } from '~/components/AiFilterToggle'
 
 export const Route = createFileRoute('/tags/$tag')({
-  validateSearch: z.object({ page: z.number().int().min(1).catch(1).optional() }),
-  loaderDeps: ({ search }) => ({ page: search.page ?? 1 }),
+  validateSearch: z.object({
+    page: z.number().int().min(1).catch(1).optional(),
+    ai: z.literal('hide').optional().catch(undefined),
+  }),
+  loaderDeps: ({ search }) => ({
+    page: search.page ?? 1,
+    hideAi: search.ai === 'hide',
+  }),
   loader: ({ params, deps }) =>
-    listPostsByTag({ data: { tag: params.tag, page: deps.page } }),
+    listPostsByTag({
+      data: { tag: params.tag, page: deps.page, hideAi: deps.hideAi },
+    }),
   component: TagPage,
 })
 
 function TagPage() {
   const { items, total, page, pageSize } = Route.useLoaderData()
   const { tag } = Route.useParams()
+  const { ai } = Route.useSearch()
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight">
-        <span className="text-neutral-400">#</span>
-        {tag}
-      </h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">
+          <span className="text-neutral-400">#</span>
+          {tag}
+        </h1>
+        <AiFilterToggle hidden={ai === 'hide'} />
+      </div>
       <PostList posts={items} />
       <Pagination page={page} totalPages={totalPages} />
     </div>

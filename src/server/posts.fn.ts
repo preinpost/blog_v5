@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { count, desc, eq, sql } from 'drizzle-orm'
+import { and, count, desc, eq, sql } from 'drizzle-orm'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
@@ -90,14 +90,22 @@ async function renderMarkdown(md: string): Promise<string> {
 /** Number of posts shown per list page. */
 export const PAGE_SIZE = 10
 
-const pageInput = z.object({ page: z.number().int().min(1).default(1) })
+const pageInput = z.object({
+  page: z.number().int().min(1).default(1),
+  // When true, AI-written posts are excluded. Filtering happens in SQL (not in
+  // the client) so limit/offset paging and the total count stay consistent.
+  hideAi: z.boolean().default(false),
+})
 
 /** Public: published posts, newest first, paginated 10 per page. */
 export const listPosts = createServerFn({ method: 'GET' })
   .validator(pageInput)
   .handler(async ({ data }) => {
     const db = getDb()
-    const where = eq(posts.status, 'published')
+    const where = and(
+      eq(posts.status, 'published'),
+      data.hideAi ? eq(posts.aiGenerated, false) : undefined,
+    )
     const [items, [{ value: total }]] = await Promise.all([
       db.query.posts.findMany({
         where,
@@ -118,7 +126,10 @@ export const listPostsByTag = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const db = getDb()
     const all = await db.query.posts.findMany({
-      where: eq(posts.status, 'published'),
+      where: and(
+        eq(posts.status, 'published'),
+        data.hideAi ? eq(posts.aiGenerated, false) : undefined,
+      ),
       orderBy: [desc(posts.createdAt), desc(sql`rowid`)],
     })
     // tags are stored as JSON, so filter in memory then page the result.

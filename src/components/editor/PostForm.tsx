@@ -53,6 +53,7 @@ export function PostForm({ post }: { post?: Post }) {
   const [htmlContent, setHtmlContent] = useState(
     post?.contentType === 'html' ? post.content : '',
   )
+  const [aiGenerated, setAiGenerated] = useState(post?.aiGenerated ?? false)
   const [htmlFileName, setHtmlFileName] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -81,6 +82,7 @@ export function PostForm({ post }: { post?: Post }) {
       slug: slug.trim() || undefined,
       content,
       contentType,
+      aiGenerated,
       excerpt: excerpt.trim() || undefined,
       tags,
       status,
@@ -158,15 +160,27 @@ export function PostForm({ post }: { post?: Post }) {
           className={fieldClass}
         />
       </div>
-      <label className="flex items-center gap-2 text-sm text-neutral-600">
-        <span className="shrink-0">작성일</span>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-neutral-500"
-        />
-      </label>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <label className="flex items-center gap-2 text-sm text-neutral-600">
+          <span className="shrink-0">작성일</span>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-neutral-500"
+          />
+        </label>
+        <label className="flex items-center gap-2 text-sm text-neutral-600">
+          <input
+            type="checkbox"
+            checked={aiGenerated}
+            onChange={(e) => setAiGenerated(e.target.checked)}
+            className="size-4 accent-neutral-900"
+          />
+          <span>AI가 생성한 글</span>
+          <span className="text-neutral-400">— 목록에서 숨길 수 있게 표시됩니다</span>
+        </label>
+      </div>
       <textarea
         value={excerpt}
         onChange={(e) => setExcerpt(e.target.value)}

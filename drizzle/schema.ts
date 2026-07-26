@@ -22,6 +22,12 @@ export const posts = sqliteTable(
     contentType: text('content_type', { enum: ['markdown', 'html'] })
       .notNull()
       .default('markdown'),
+    // Author-declared flag: the post was produced by an AI. Drives the
+    // "AI 글 숨기기" filter on the public list (kept as a real column so the
+    // filter can run in SQL and paginate correctly).
+    aiGenerated: integer('ai_generated', { mode: 'boolean' })
+      .notNull()
+      .default(false),
     tags: text('tags', { mode: 'json' })
       .$type<string[]>()
       .notNull()
@@ -43,6 +49,7 @@ export const posts = sqliteTable(
     uniqueIndex('posts_post_no_unique').on(t.postNo),
     index('posts_status_idx').on(t.status),
     index('posts_status_created_idx').on(t.status, t.createdAt),
+    index('posts_status_ai_created_idx').on(t.status, t.aiGenerated, t.createdAt),
   ],
 )
 
