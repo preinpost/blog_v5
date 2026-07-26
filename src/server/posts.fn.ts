@@ -153,3 +153,21 @@ export const getRenderedPost = createServerFn({ method: 'GET' })
         : await renderMarkdown(post.content)
     return { post, html }
   })
+
+/**
+ * Resolve a short public post number (/p/:no) to its canonical slug. Drafts are
+ * only resolvable by an authenticated admin. Returns null when not found/hidden
+ * so the route can render a 404.
+ */
+export const getSlugByPostNo = createServerFn({ method: 'GET' })
+  .validator(z.object({ no: z.number().int().positive() }))
+  .handler(async ({ data }) => {
+    const db = getDb()
+    const row = await db.query.posts.findFirst({
+      where: eq(posts.postNo, data.no),
+      columns: { slug: true, status: true },
+    })
+    if (!row) return null
+    if (row.status !== 'published' && !(await isAdmin())) return null
+    return { slug: row.slug }
+  })

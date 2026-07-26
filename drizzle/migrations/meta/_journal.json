@@ -15,6 +15,13 @@
       "when": 1781874037918,
       "tag": "0001_far_silhouette",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1784903297801,
+      "tag": "0002_brown_big_bertha",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { listAllPosts, deletePost } from '~/server/admin.fn'
 import { formatDate } from '~/lib/format'
 import { Pagination } from '~/components/Pagination'
+import { shortPostUrl } from '~/lib/site'
 
 export const Route = createFileRoute('/admin/')({
   validateSearch: z.object({ page: z.number().int().min(1).catch(1).optional() }),
@@ -15,6 +16,17 @@ function Dashboard() {
   const { items: posts, total, page, pageSize } = Route.useLoaderData()
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const router = useRouter()
+
+  async function onCopyShortLink(postNo: number | null) {
+    if (postNo == null) return
+    const url = shortPostUrl(postNo)
+    try {
+      await navigator.clipboard.writeText(url)
+      window.alert(`짧은 링크를 복사했어요:\n${url}`)
+    } catch {
+      window.prompt('짧은 링크', url)
+    }
+  }
 
   async function onDelete(id: string, title: string) {
     if (!window.confirm(`"${title}" 글을 삭제할까요?`)) return
@@ -45,8 +57,15 @@ function Dashboard() {
                     {post.title}
                   </Link>
                 </div>
-                <div className="mt-1 text-xs text-neutral-500">
-                  {formatDate(post.createdAt)} · /{post.slug}
+                <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
+                  {post.postNo != null && (
+                    <span className="rounded bg-neutral-100 px-1.5 py-0.5 font-mono font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+                      #{post.postNo}
+                    </span>
+                  )}
+                  <span className="truncate">
+                    {formatDate(post.createdAt)} · /{post.slug}
+                  </span>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-3 text-sm">
@@ -57,6 +76,16 @@ function Dashboard() {
                 >
                   {post.status === 'published' ? '보기' : '미리보기'}
                 </Link>
+                {post.postNo != null && (
+                  <button
+                    type="button"
+                    onClick={() => onCopyShortLink(post.postNo)}
+                    className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                    title={shortPostUrl(post.postNo)}
+                  >
+                    링크복사
+                  </button>
+                )}
                 <Link
                   to="/admin/$id/edit"
                   params={{ id: post.id }}

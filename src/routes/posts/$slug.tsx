@@ -3,6 +3,7 @@ import { getRenderedPost } from '~/server/posts.fn'
 import { ArticleLayout } from '~/components/ArticleLayout'
 import { Prose } from '~/components/Prose'
 import { HtmlPost } from '~/components/HtmlPost'
+import { postUrl } from '~/lib/site'
 
 export const Route = createFileRoute('/posts/$slug')({
   component: PostPage,
@@ -11,9 +12,15 @@ export const Route = createFileRoute('/posts/$slug')({
     if (!result) throw notFound()
     return result
   },
-  head: ({ loaderData }) => ({
-    meta: [{ title: loaderData?.post.title ?? 'blog v5' }],
-  }),
+  head: ({ loaderData }) => {
+    const post = loaderData?.post
+    return {
+      meta: [{ title: post?.title ?? 'blog v5' }],
+      // Point every alias (incl. the short /p/:no redirect target) at the slug
+      // URL as the single canonical address for SEO.
+      links: post ? [{ rel: 'canonical', href: postUrl(post.slug) }] : [],
+    }
+  },
   notFoundComponent: () => (
     <p className="py-12 text-center text-neutral-500">글을 찾을 수 없습니다.</p>
   ),

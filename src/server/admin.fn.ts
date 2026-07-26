@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { count, desc, eq, sql } from 'drizzle-orm'
 import { getDb } from './db'
-import { posts } from '../../drizzle/schema'
+import { posts, counters } from '../../drizzle/schema'
 import { verifyAccess, isAdmin } from './middleware/access.server'
 import { slugify } from '~/lib/slug'
 
@@ -77,10 +77,22 @@ export const createPost = createServerFn({ method: 'POST' })
     const db = getDb()
     const id = crypto.randomUUID()
     const slug = data.slug?.trim() || slugify(data.title)
+    // Allocate the next public post number atomically. The upsert increments an
+    // ever-growing counter and RETURNs the new value, so numbers are unique and
+    // never reused — even if the most recent post is later deleted.
+    const [{ value: postNo }] = await db
+      .insert(counters)
+      .values({ name: 'post_no', value: 1 })
+      .onConflictDoUpdate({
+        target: counters.name,
+        set: { value: sql`${counters.value} + 1` },
+      })
+      .returning({ value: counters.value })
     const now = new Date()
     const createdAt = data.date ? new Date(data.date) : now
     await db.insert(posts).values({
       id,
+      postNo,
       slug,
       title: data.title,
       content: data.content,
@@ -93,7 +105,7 @@ export const createPost = createServerFn({ method: 'POST' })
       updatedAt: now,
       publishedAt: data.status === 'published' ? createdAt : null,
     })
-    return { id, slug }
+    return { id, slug, postNo }
   })
 
 export const updatePost = createServerFn({ method: 'POST' })
