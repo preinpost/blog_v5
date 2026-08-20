@@ -94,6 +94,69 @@
   border-radius: 6px;
 }
 
+/* ── Headings: shrink Crepe's oversized defaults to the reader's prose scale ──
+   Crepe ships h1=42px/h2=36px/h3=32px; the site's viewer (Tailwind prose)
+   uses ~36/24/20px. Matching the viewer makes the editor WYSIWYG-consistent. */
+.milkdown .ProseMirror h1 {
+  font-size: 2em !important;
+  line-height: 1.25 !important;
+  margin: 1.2em 0 0.6em !important;
+  font-weight: 800 !important;
+}
+.milkdown .ProseMirror h2 {
+  font-size: 1.5em !important;
+  line-height: 1.35 !important;
+  margin: 1.4em 0 0.6em !important;
+  font-weight: 800 !important;
+}
+.milkdown .ProseMirror h3 {
+  font-size: 1.25em !important;
+  line-height: 1.5 !important;
+  margin: 1.5em 0 0.5em !important;
+  font-weight: 700 !important;
+}
+.milkdown .ProseMirror h4 {
+  font-size: 1.05em !important;
+  line-height: 1.6 !important;
+  margin: 1.4em 0 0.5em !important;
+  font-weight: 700 !important;
+}
+.milkdown .ProseMirror h5 {
+  font-size: 1em !important;
+  line-height: 1.6 !important;
+  margin: 1.4em 0 0.5em !important;
+  font-weight: 700 !important;
+}
+.milkdown .ProseMirror h6 {
+  font-size: 0.9em !important;
+  line-height: 1.6 !important;
+  margin: 1.4em 0 0.5em !important;
+  font-weight: 800 !important;
+}
+
+/* ── Images: fit within the editor width (like the viewer) ─────────────
+   Crepe's image-block wrapper is `width: fit-content` so a big screenshot
+   overflows the card. Cap the wrapper at the container width and contain
+   (not cover) so images scale down without cropping. */
+.milkdown .milkdown-image-block > .image-wrapper {
+  width: fit-content;
+  max-width: 100% !important;
+  margin-inline: auto;
+  min-width: 100px;
+}
+.milkdown .milkdown-image-block > .image-wrapper img {
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block;
+  min-height: 100px;
+}
+.milkdown .milkdown-image-inline > img,
+.milkdown .ProseMirror img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
 /* Light mode only. Redefining `dark:` to require a `.dark` ancestor (which we
    never add) disables OS-based dark mode for every `dark:` utility at once. */
 @custom-variant dark (&:where(.dark, .dark *));
