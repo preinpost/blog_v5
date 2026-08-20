@@ -109,7 +109,14 @@ export function PostForm({ post }: { post?: Post }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dirty, setDirty] = useState(false)
-  const markDirty = () => setDirty(true)
+  // After the first save of a brand-new post we remember the created id so
+  // later saves update (not duplicate) it — we stay on this page on save.
+  const [createdId, setCreatedId] = useState<string | null>(post?.id ?? null)
+  const [justSaved, setJustSaved] = useState(false)
+  const markDirty = () => {
+    setDirty(true)
+    setJustSaved(false)
+  }
 
   // Move focus to the error summary on a failed save (keyboard/SR discoverable).
   useEffect(() => {
@@ -126,6 +133,7 @@ export function PostForm({ post }: { post?: Post }) {
   }, [dirty])
 
   async function save() {
+    if (saving) return
     if (!title.trim()) {
       setError('제목을 입력하세요')
       return
@@ -156,17 +164,40 @@ export function PostForm({ post }: { post?: Post }) {
       date,
     }
     try {
-      if (post) {
-        await updatePost({ data: { id: post.id, ...payload } })
+      if (createdId) {
+        await updatePost({ data: { id: createdId, ...payload } })
       } else {
-        await createPost({ data: payload })
+        const { id } = await createPost({ data: payload })
+        setCreatedId(id)
       }
-      await router.navigate({ to: '/admin' })
+      // Stay on this page; reset the dirty flag and show a short "저장됨" ack.
+      setSaving(false)
+      setDirty(false)
+      setJustSaved(true)
+      window.setTimeout(() => setJustSaved(false), 2500)
     } catch (e) {
       setError(`저장 실패: ${e instanceof Error ? e.message : String(e)}`)
       setSaving(false)
     }
   }
+
+  // Keep the latest `save` in a ref so the global shortcut listener is stable.
+  const saveRef = useRef(save)
+  useEffect(() => {
+    saveRef.current = save
+  })
+
+  // Cmd/Ctrl+S anywhere on the page saves the post.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        void saveRef.current()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   function goToList() {
     if (
@@ -180,7 +211,7 @@ export function PostForm({ post }: { post?: Post }) {
     void router.navigate({ to: '/admin' })
   }
 
-  const isNew = !post
+  const isNew = createdId == null
 
   return (
     <div>
@@ -220,6 +251,22 @@ export function PostForm({ post }: { post?: Post }) {
                 />
                 저장 중…
               </span>
+            ) : justSaved ? (
+              <span className="inline-flex items-center gap-1.5 text-sm text-green-700 dark:text-green-400">
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  className="size-4"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 1 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                저장됨
+              </span>
             ) : dirty ? (
               <span className="inline-flex items-center gap-1.5 text-sm text-amber-700 dark:text-amber-500">
                 <span
@@ -246,7 +293,7 @@ export function PostForm({ post }: { post?: Post }) {
             <Button
               variant="primary"
               onClick={() => void save()}
-              disabled={saving || !dirty}
+              disabled={saving}
             >
               {saving ? '저장 중…' : '저장'}
             </Button>
