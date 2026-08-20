@@ -94,11 +94,18 @@
   border-radius: 6px;
 }
 
+/* ── Viewer (prose) heading scale ──────────────────────────────
+   Typography-plugin default h1 is 2.25em (~36px) — trim to match the
+   editor (1.75em) so both read as a section title, not a poster. */
+.prose h1 {
+  font-size: 1.75em !important;
+}
+
 /* ── Headings: shrink Crepe's oversized defaults to the reader's prose scale ──
    Crepe ships h1=42px/h2=36px/h3=32px; the site's viewer (Tailwind prose)
    uses ~36/24/20px. Matching the viewer makes the editor WYSIWYG-consistent. */
 .milkdown .ProseMirror h1 {
-  font-size: 2em !important;
+  font-size: 1.75em !important;
   line-height: 1.25 !important;
   margin: 1.2em 0 0.6em !important;
   font-weight: 800 !important;
