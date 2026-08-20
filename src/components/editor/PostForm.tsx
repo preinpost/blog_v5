@@ -284,75 +284,6 @@ export function PostForm({ post }: { post?: Post }) {
         <div className="mt-2 border-b border-neutral-200 pb-4 dark:border-neutral-800" />
       </div>
 
-      <div className="mt-4">
-        <Segmented
-          label="콘텐츠 형식"
-          options={[
-            { value: 'markdown', label: '마크다운' },
-            { value: 'html', label: 'HTML 첨부' },
-          ]}
-          value={contentType}
-          onChange={(v) => {
-            setContentType(v as 'markdown' | 'html')
-            markDirty()
-          }}
-        />
-      </div>
-
-      {/* Crepe stays mounted (preserves state/ref); just hidden in HTML mode. */}
-      <div
-        className={`mt-4 overflow-hidden rounded-xl border border-neutral-200 shadow-sm dark:border-neutral-800 ${
-          contentType === 'html' ? 'hidden' : ''
-        }`}
-      >
-        <ClientOnly fallback={<EditorSkeleton />}>
-          <Suspense fallback={<EditorSkeleton />}>
-            <CrepeEditor
-              initialMarkdown={
-                post?.contentType === 'html' ? '' : (post?.content ?? '')
-              }
-              crepeRef={crepeRef}
-              onUpload={uploadImage}
-              onChange={markDirty}
-            />
-          </Suspense>
-        </ClientOnly>
-      </div>
-
-      {contentType === 'html' ? (
-        <div className="mt-4 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
-          <label
-            htmlFor="html-file"
-            className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50/60 px-6 py-8 text-center transition-colors hover:border-neutral-400 hover:bg-neutral-100/60 dark:border-neutral-700 dark:bg-neutral-900/40 dark:hover:border-neutral-600"
-          >
-            <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
-              HTML 파일 선택
-            </span>
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">
-              스타일까지 그대로 발행됩니다 (.html)
-            </span>
-          </label>
-          <input
-            id="html-file"
-            type="file"
-            accept=".html,text/html"
-            className="sr-only"
-            onChange={async (e) => {
-              const file = e.target.files?.[0]
-              if (!file) return
-              setHtmlFileName(file.name)
-              setHtmlContent(await file.text())
-              markDirty()
-            }}
-          />
-          <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-            {htmlContent
-              ? `현재 HTML: ${htmlFileName ? `${htmlFileName} · ` : ''}${htmlContent.length.toLocaleString()}자`
-              : '선택한 파일의 내용이 여기에 반영돼요.'}
-          </p>
-        </div>
-      ) : null}
-
       {/* ── Publication settings (progressive disclosure) ───────────── */}
       <details className="group mt-6 rounded-xl border border-neutral-200 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-900/40">
         <summary className="flex cursor-pointer list-none items-center justify-between select-none px-4 py-3 text-sm font-medium text-neutral-700 marker:hidden dark:text-neutral-300">
@@ -443,6 +374,77 @@ export function PostForm({ post }: { post?: Post }) {
           </div>
         </div>
       </details>
+
+      <div className="mt-4">
+        <Segmented
+          label="콘텐츠 형식"
+          options={[
+            { value: 'markdown', label: '마크다운' },
+            { value: 'html', label: 'HTML 첨부' },
+          ]}
+          value={contentType}
+          onChange={(v) => {
+            setContentType(v as 'markdown' | 'html')
+            markDirty()
+          }}
+        />
+      </div>
+
+      {/* Crepe stays mounted (preserves state/ref); just hidden in HTML mode. */}
+      <div
+        className={`mt-4 overflow-hidden rounded-xl border border-neutral-200 shadow-sm dark:border-neutral-800 ${
+          contentType === 'html' ? 'hidden' : ''
+        }`}
+      >
+        <ClientOnly fallback={<EditorSkeleton />}>
+          <Suspense fallback={<EditorSkeleton />}>
+            <CrepeEditor
+              initialMarkdown={
+                post?.contentType === 'html' ? '' : (post?.content ?? '')
+              }
+              crepeRef={crepeRef}
+              onUpload={uploadImage}
+              onChange={markDirty}
+            />
+          </Suspense>
+        </ClientOnly>
+      </div>
+
+      {contentType === 'html' ? (
+        <div className="mt-4 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+          <label
+            htmlFor="html-file"
+            className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50/60 px-6 py-8 text-center transition-colors hover:border-neutral-400 hover:bg-neutral-100/60 dark:border-neutral-700 dark:bg-neutral-900/40 dark:hover:border-neutral-600"
+          >
+            <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+              HTML 파일 선택
+            </span>
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">
+              스타일까지 그대로 발행됩니다 (.html)
+            </span>
+          </label>
+          <input
+            id="html-file"
+            type="file"
+            accept=".html,text/html"
+            className="sr-only"
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              setHtmlFileName(file.name)
+              setHtmlContent(await file.text())
+              markDirty()
+            }}
+          />
+          <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+            {htmlContent
+              ? `현재 HTML: ${htmlFileName ? `${htmlFileName} · ` : ''}${htmlContent.length.toLocaleString()}자`
+              : '선택한 파일의 내용이 여기에 반영돼요.'}
+          </p>
+        </div>
+      ) : null}
+
+
     </div>
   )
 }
