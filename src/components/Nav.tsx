@@ -6,15 +6,15 @@ export function Nav({ isAdmin }: { isAdmin: boolean }) {
       <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
         <Link
           to="/"
-          className="text-lg font-bold tracking-tight"
+          className="inline-flex min-h-9 items-center text-lg font-bold tracking-tight"
           activeOptions={{ exact: true }}
         >
           blog v5
         </Link>
-        <div className="flex items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
+        <div className="flex items-center gap-1 text-sm text-neutral-600 dark:text-neutral-400">
           <Link
             to="/"
-            className="transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
+            className="inline-flex min-h-9 items-center rounded-lg px-2.5 transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
             activeProps={{ className: 'text-neutral-900 dark:text-neutral-100 font-medium' }}
             activeOptions={{ exact: true }}
           >
@@ -23,7 +23,7 @@ export function Nav({ isAdmin }: { isAdmin: boolean }) {
           {isAdmin && (
             <Link
               to="/admin"
-              className="transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
+              className="inline-flex min-h-9 items-center rounded-lg px-2.5 transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
               activeProps={{ className: 'text-neutral-900 dark:text-neutral-100 font-medium' }}
             >
               관리

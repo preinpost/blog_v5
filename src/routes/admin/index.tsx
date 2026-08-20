@@ -68,11 +68,11 @@ function Dashboard() {
                   </span>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3 text-sm">
+              <div className="flex shrink-0 flex-wrap items-center gap-1 text-sm">
                 <Link
                   to="/posts/$slug"
                   params={{ slug: post.slug }}
-                  className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  className="inline-flex min-h-9 cursor-pointer items-center rounded-lg px-2.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
                 >
                   {post.status === 'published' ? '보기' : '미리보기'}
                 </Link>
@@ -80,23 +80,23 @@ function Dashboard() {
                   <button
                     type="button"
                     onClick={() => onCopyShortLink(post.postNo)}
-                    className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                    className="inline-flex min-h-9 cursor-pointer items-center rounded-lg px-2.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
                     title={shortPostUrl(post.postNo)}
                   >
-                    링크복사
+                    링크
                   </button>
                 )}
                 <Link
                   to="/admin/$id/edit"
                   params={{ id: post.id }}
-                  className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  className="inline-flex min-h-9 cursor-pointer items-center rounded-lg px-2.5 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
                 >
                   편집
                 </Link>
                 <button
                   type="button"
                   onClick={() => onDelete(post.id, post.title)}
-                  className="text-red-600 hover:text-red-700"
+                  className="inline-flex min-h-9 cursor-pointer items-center rounded-lg px-2.5 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300"
                 >
                   삭제
                 </button>

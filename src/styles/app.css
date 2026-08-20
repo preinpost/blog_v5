@@ -1,11 +1,97 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* Pretendard as the default sans font everywhere (loaded via CDN in __root). */
+/* ── Design tokens ──────────────────────────────────────
+   Editorial black + zinc neutrals (Swiss Modernism 2.0 direction).
+   Primary stays neutral-900; the paper background gets a whisper of warmth. */
 @theme {
   --font-sans:
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --color-paper: #fafafa;
+}
+
+/* ── Accessible interaction baseline (applies to ALL controls) ── */
+@layer base {
+  /* Visible keyboard focus on every interactive control.*/
+  :where(
+      button,
+      a[href],
+      input,
+      select,
+      textarea,
+      summary,
+      [role="button"],
+      [tabindex]:not([tabindex="-1"])
+    ):focus-visible {
+    outline: 2px solid var(--color-neutral-900);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Text selection: subtle paper-contrast highlight. */
+  ::selection {
+    background: #d4d4d8;
+    color: var(--color-neutral-900);
+  }
+
+  /* Respect reduced-motion: kill transitions immediately. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ── Crepe editor theme ───────────────────────────────────────────
+   Map Crepe's `--crepe-*` vars to the blog's neutral palette so the
+   writing surface reads as part of the site (not a third-party island). */
+.milkdown {
+  --crepe-color-background: #ffffff;
+  --crepe-color-on-background: #18181b;
+  --crepe-color-surface: #fafafa;
+  --crepe-color-surface-low: #f4f4f5;
+  --crepe-color-on-surface: #18181b;
+  --crepe-color-on-surface-variant: #52525b;
+  --crepe-color-outline: #a1a1aa;
+  --crepe-color-primary: #18181b;
+  --crepe-color-secondary: #e4e4e7;
+  --crepe-color-on-secondary: #18181b;
+  --crepe-color-inverse: #f4f4f5;
+  --crepe-color-on-inverse: #18181b;
+  --crepe-color-inline-code: #9f1239;
+  --crepe-color-error: #dc2626;
+  --crepe-color-hover: #f4f4f5;
+  --crepe-color-selected: #e4e4e7;
+  --crepe-color-inline-area: #e4e4e7;
+  --crepe-shadow-1:
+    0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --crepe-shadow-2:
+    0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Contained, prose-like writing surface (Crepe defaults to a huge canvas).
+   Width matches the reader (`prose max-w-none`) so what you write fills the
+   card edge-to-edge without the dead margins on both sides. */
+.milkdown .ProseMirror {
+  max-width: 100%;
+  min-height: 52vh;
+  margin: 0 auto;
+  padding: 40px 20px 48px !important;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+}
+
+/* Crepe's reset strips focus rings from its own toolbar — put them back. */
+.milkdown :where(button, a, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-neutral-900) !important;
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 /* Light mode only. Redefining `dark:` to require a `.dark` ancestor (which we
