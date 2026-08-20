@@ -169,13 +169,20 @@
    ProseMirror, so code looks bigger in the editor than in the reader.
    Pin it to the reader's text-sm scale and tame the line height. */
 .milkdown .milkdown-code-block .cm-content {
-  font-size: 0.875rem !important; /* 14px = reader text-sm */
+  font-size: 0.8125rem !important; /* 13px = reader text-sm보다 한 단계 작게 */
   line-height: 1.7 !important;
   font-family: var(--crepe-font-code) !important;
 }
 .milkdown .milkdown-code-block .cm-gutters {
-  font-size: 0.8125rem !important; /* 13px line numbers */
+  font-size: 0.75rem !important; /* 12px line numbers */
   font-family: var(--crepe-font-code) !important;
+}
+
+/* Hide CodeMirror's current-line highlight (crepe's basicSetup enables it).
+   The active row + gutter background are not needed while writing code. */
+.milkdown .milkdown-code-block .cm-activeLine,
+.milkdown .milkdown-code-block .cm-activeLineGutter {
+  background-color: transparent !important;
 }
 
 /* Light mode only. Redefining `dark:` to require a `.dark` ancestor (which we
